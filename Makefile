@@ -18,7 +18,7 @@ COVER_EXCLUDE := github.com/oopsla5xx/oops-api-v1/docs,\
 COVER_MIN     ?= 0
 
 # Tool versions — keep in sync with .github/workflows/ci.yml
-GOLANGCI_LINT_VERSION := v1.64.8
+GOLANGCI_LINT_VERSION := v2.12.2
 MOCKERY_VERSION       := v2.53.6
 GOOSE_VERSION         := v3.27.3
 
@@ -77,7 +77,8 @@ cover-func:
 
 ## lint: run golangci-lint
 lint:
-	@test -f $(GOBIN)/golangci-lint || go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	@$(GOBIN)/golangci-lint version 2>/dev/null | grep -q "version $(GOLANGCI_LINT_VERSION:v%=%) " || \
+	  go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 	$(GOBIN)/golangci-lint run ./...
 
 ## fmt: format all Go files (gofmt + goimports)
