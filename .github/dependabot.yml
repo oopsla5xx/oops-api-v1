@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Keep GitHub Actions up to date.
+  # Dependabot opens a PR when a new action version is released.
+  # To switch to SHA pinning: configure Renovate with pinDigests: true instead.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  # Keep Go dependencies up to date.
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      go-dependencies:
+        patterns: ["*"]

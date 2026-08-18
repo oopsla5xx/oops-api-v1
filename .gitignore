@@ -1,0 +1,35 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test artifacts
+*.test
+*.out
+coverage.html
+coverage.out
+
+# Environment files (never commit actual secrets)
+.env
+.env.development
+.env.test
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.DS_Store
+
+# Air (hot reload)
+tmp/
+
+# Build artifacts
+dist/
+
+# Logs
+*.log

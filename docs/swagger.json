@@ -1,0 +1,49 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Oops AI-native Software Development Workspace API",
+        "title": "Oops API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Returns service liveness status. Does NOT check DB/Redis — use this for liveness probes only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.healthResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handler.healthResponse": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

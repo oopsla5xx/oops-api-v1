@@ -1,0 +1,47 @@
+name: oops
+
+# Development infrastructure only.
+# Run the API locally with: make dev (Air hot reload)
+# For test infrastructure, use: make test-up
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: oops
+      POSTGRES_PASSWORD: oops
+      POSTGRES_DB: oops_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oops -d oops_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oops-dev-network
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oops-dev-network
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+
+networks:
+  oops-dev-network:
+    driver: bridge

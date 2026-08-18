@@ -1,0 +1,10 @@
+with-expecter: true
+log-level: warn
+
+packages:
+  github.com/oopsla5xx/oops-api-v1/internal/modules:
+    config:
+      recursive: true
+      dir: "{{.InterfaceDir}}/mocks"
+      outpkg: mocks
+      filename: "mock_{{.InterfaceName | snakecase}}.go"

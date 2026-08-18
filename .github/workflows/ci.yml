@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+# Cancel queued/in-progress runs for the same workflow + ref.
+# PRs: only the latest push runs. Pushes to main: every run completes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Minimum permissions for all jobs. Each job overrides only what it needs.
+# See: https://docs.github.com/en/actions/security-guides/automatic-token-authentication
+permissions:
+  contents: read
+
+# ── Security note ────────────────────────────────────────────────────────────
+# Actions are pinned to semver tags. For stronger supply-chain security, pin
+# each action to a full commit SHA and let Dependabot open update PRs.
+# Example: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+# See .github/dependabot.yml for automated update configuration.
+# ─────────────────────────────────────────────────────────────────────────────
+
+jobs:
+  # ── Test ──────────────────────────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true  # caches GOMODCACHE between runs
+
+      - name: Start test containers
+        run: docker compose -f docker/docker-compose.test.yml up -d --wait
+
+      - name: Install goose
+        # Pinned version for deterministic CI. Update in sync with go.mod tooling.
+        run: go install github.com/pressly/goose/v3/cmd/goose@v3.27.3
+
+      - name: Run migrations
+        env:
+          DATABASE_DSN: postgres://oops:oops@localhost:5433/oops_test?sslmode=disable
+        run: goose -dir database/migrations postgres "$DATABASE_DSN" up
+
+      - name: Run tests with coverage
+        env:
+          APP_NAME: oops-api-v1
+          APP_ENV: test
+          APP_DEBUG: "false"
+          SERVER_HOST: "0.0.0.0"
+          SERVER_PORT: "8080"
+          SERVER_SHUTDOWN_TIMEOUT: 10s
+          SERVER_READ_HEADER_TIMEOUT: 5s
+          SERVER_READ_TIMEOUT: 10s
+          SERVER_WRITE_TIMEOUT: 10s
+          CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+          RATE_LIMIT_RPS: "100"
+          RATE_LIMIT_BURST: "200"
+          DATABASE_DSN: postgres://oops:oops@localhost:5433/oops_test?sslmode=disable
+          DATABASE_MAX_CONNS: "5"
+          DATABASE_MIN_CONNS: "1"
+          DATABASE_MAX_CONN_LIFETIME: 30m
+          DATABASE_MAX_CONN_IDLE_TIME: 10m
+          REDIS_ADDR: localhost:6380
+          REDIS_PASSWORD: ""
+          REDIS_DB: "0"
+        run: make test-cover COVER_MIN=90 COVER_PKG_WARN=80
+
+      - name: Stop test containers
+        if: always()
+        run: docker compose -f docker/docker-compose.test.yml down
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.html
+          retention-days: 7
+
+  # ── Lint ──────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+
+  # ── Generate ──────────────────────────────────────────────────────────────
+  generate:
+    name: Check generated mocks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install mockery
+        run: go install github.com/vektra/mockery/v2@v2.53.6
+
+      - name: Run make generate
+        run: make generate
+
+      - name: Fail if mocks are stale
+        run: |
+          git diff --exit-code || \
+            (echo "Mocks are stale. Run 'make generate' locally and commit." && exit 1)
+
+  # ── Build ─────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build binary
+        run: make build

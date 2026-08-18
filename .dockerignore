@@ -1,0 +1,41 @@
+# Docker & Git Metadata
+.git
+.gitignore
+Dockerfile
+.dockerignore
+
+# Go Build Artifacts & Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+dist/
+# Common hot-reload binary name for Gin projects (e.g., using air or gin tool)
+tmp/
+gin-bin
+
+# Configuration & Sensitive Files
+.env
+*.env
+.env.*
+config/*.env
+secrets/
+
+# Dependency Management
+# Uncomment if you manage dependencies inside Docker and want to ignore local vendor folders
+# vendor/
+
+# IDEs & System Garbage
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db

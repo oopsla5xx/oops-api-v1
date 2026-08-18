@@ -1,0 +1,33 @@
+basePath: /api/v1
+definitions:
+  handler.healthResponse:
+    properties:
+      service:
+        type: string
+      status:
+        type: string
+      version:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Oops AI-native Software Development Workspace API
+  title: Oops API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: Returns service liveness status. Does NOT check DB/Redis — use
+        this for liveness probes only.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.healthResponse'
+      summary: Health check
+      tags:
+      - health
+swagger: "2.0"
