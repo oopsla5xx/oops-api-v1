@@ -72,6 +72,12 @@ jobs:
           REDIS_ADDR: localhost:6380
           REDIS_PASSWORD: ""
           REDIS_DB: "0"
+          NEW_RELIC_ENABLED: "false"
+          NEW_RELIC_LICENSE_KEY: ""
+          NEW_RELIC_APP_NAME: ""
+          NEW_RELIC_CODE_LEVEL_METRICS_ENABLED: "false"
+          NEW_RELIC_CODE_LEVEL_METRICS_PATH_PREFIX: ""
+          NEW_RELIC_LABELS: ""
         run: make test-cover COVER_MIN=90 COVER_PKG_WARN=80
 
       - name: Stop test containers

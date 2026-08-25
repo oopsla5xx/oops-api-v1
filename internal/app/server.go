@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	goredis "github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
@@ -16,6 +17,7 @@ type Server struct {
 	httpServer *http.Server
 	db         *pgxpool.Pool
 	redis      *goredis.Client
+	newRelic   *newrelic.Application
 	log        *zap.Logger
 	cfg        *config.Config
 }
@@ -40,6 +42,7 @@ func NewServer(cfg *config.Config, log *zap.Logger) (*Server, error) {
 		httpServer: httpServer,
 		db:         deps.db,
 		redis:      deps.redis,
+		newRelic:   deps.newRelic,
 		log:        log,
 		cfg:        cfg,
 	}, nil
@@ -83,6 +86,9 @@ func (s *Server) shutdown() error {
 		s.log.Warn("redis close error", zap.Error(err))
 	}
 	s.log.Info("redis connection closed")
+
+	s.newRelic.Shutdown(s.cfg.Server.ShutdownTimeout)
+	s.log.Info("new relic agent stopped")
 
 	s.log.Info("server stopped gracefully")
 	return nil
