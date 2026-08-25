@@ -13,30 +13,30 @@ import (
 
 func TestNew(t *testing.T) {
 	tests := []struct {
-		name       string
-		code       string
-		message    string
-		statusCode int
+		name    string
+		code    string
+		message string
+		status  int
 	}{
 		{
-			name:       "creates error with all fields set",
-			code:       "TEST_CODE",
-			message:    "test message",
-			statusCode: http.StatusBadRequest,
+			name:    "creates error with all fields set",
+			code:    "TEST_CODE",
+			message: "test message",
+			status:  http.StatusBadRequest,
 		},
 		{
-			name:       "creates error with 500 status",
-			code:       "INTERNAL_SERVER_ERROR",
-			message:    "internal server error",
-			statusCode: http.StatusInternalServerError,
+			name:    "creates error with 500 status",
+			code:    "INTERNAL_SERVER_ERROR",
+			message: "internal server error",
+			status:  http.StatusInternalServerError,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := app_errors.New(tt.code, tt.message, tt.statusCode)
+			err := app_errors.New(tt.code, tt.message, tt.status)
 			assert.Equal(t, tt.code, err.Code)
 			assert.Equal(t, tt.message, err.Message)
-			assert.Equal(t, tt.statusCode, err.StatusCode)
+			assert.Equal(t, tt.status, err.Status)
 			assert.Nil(t, err.Err)
 		})
 	}
@@ -185,7 +185,7 @@ func TestSentinelErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.wantCode, tt.err.Code)
-			assert.Equal(t, tt.wantStatusCode, tt.err.StatusCode)
+			assert.Equal(t, tt.wantStatusCode, tt.err.Status)
 		})
 	}
 }

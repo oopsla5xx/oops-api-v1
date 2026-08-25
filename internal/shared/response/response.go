@@ -10,42 +10,43 @@ import (
 )
 
 type Response struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
-	Error  *ErrorBody  `json:"error,omitempty"`
-	Meta   *Meta       `json:"meta,omitempty"`
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   *ErrorInfo  `json:"error,omitempty"`
+	Meta    *Meta       `json:"meta,omitempty"`
 }
 
-type ErrorBody struct {
+type ErrorInfo struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
 type Meta struct {
-	Page    int `json:"page,omitempty"`
-	PerPage int `json:"per_page,omitempty"`
-	Total   int `json:"total,omitempty"`
+	Page       int `json:"page,omitempty"`
+	PerPage    int `json:"per_page,omitempty"`
+	Total      int `json:"total,omitempty"`
+	TotalPages int `json:"total_pages,omitempty"`
 }
 
 func OK(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, Response{
-		Status: "ok",
-		Data:   data,
+		Success: true,
+		Data:    data,
 	})
 }
 
 func Created(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusCreated, Response{
-		Status: "ok",
-		Data:   data,
+		Success: true,
+		Data:    data,
 	})
 }
 
 func Error(c *gin.Context, err error) {
 	if appErr, ok := app_errors.IsAppError(err); ok {
-		c.JSON(appErr.StatusCode, Response{
-			Status: "error",
-			Error: &ErrorBody{
+		c.JSON(appErr.Status, Response{
+			Success: false,
+			Error: &ErrorInfo{
 				Code:    appErr.Code,
 				Message: appErr.Message,
 			},
@@ -54,8 +55,8 @@ func Error(c *gin.Context, err error) {
 	}
 
 	c.JSON(http.StatusInternalServerError, Response{
-		Status: "error",
-		Error: &ErrorBody{
+		Success: false,
+		Error: &ErrorInfo{
 			Code:    constants.ErrInternalServer,
 			Message: "internal server error",
 		},

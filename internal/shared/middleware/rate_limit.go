@@ -28,8 +28,8 @@ func RateLimit(rps float64, burst int) gin.HandlerFunc {
 
 		if !limiter.Allow() {
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, response.Response{
-				Status: "error",
-				Error: &response.ErrorBody{
+				Success: false,
+				Error: &response.ErrorInfo{
 					Code:    constants.ErrTooManyRequests,
 					Message: "too many requests",
 				},

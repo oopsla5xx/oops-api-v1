@@ -21,8 +21,8 @@ func Recovery(log *zap.Logger) gin.HandlerFunc {
 					zap.String("method", c.Request.Method),
 				)
 				c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-					Status: "error",
-					Error: &response.ErrorBody{
+					Success: false,
+					Error: &response.ErrorInfo{
 						Code:    constants.ErrInternalServer,
 						Message: "internal server error",
 					},

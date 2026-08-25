@@ -23,8 +23,8 @@ func Timeout(duration time.Duration) gin.HandlerFunc {
 
 		if ctx.Err() == context.DeadlineExceeded && !c.Writer.Written() {
 			c.AbortWithStatusJSON(http.StatusGatewayTimeout, response.Response{
-				Status: "error",
-				Error: &response.ErrorBody{
+				Success: false,
+				Error: &response.ErrorInfo{
 					Code:    constants.ErrGatewayTimeout,
 					Message: "request timeout",
 				},

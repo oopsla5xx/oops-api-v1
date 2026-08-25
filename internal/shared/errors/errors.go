@@ -7,10 +7,10 @@ import (
 )
 
 type AppError struct {
-	Code       string
-	Message    string
-	StatusCode int
-	Err        error
+	Status  int    `json:"-"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Err     error
 }
 
 func (e *AppError) Error() string {
@@ -24,30 +24,31 @@ func (e *AppError) Unwrap() error {
 	return e.Err
 }
 
-func New(code, message string, statusCode int) *AppError {
+func New(code, message string, status int) *AppError {
 	return &AppError{
-		Code:       code,
-		Message:    message,
-		StatusCode: statusCode,
+		Code:    code,
+		Message: message,
+		Status:  status,
 	}
 }
 
-func Wrap(err error, code, message string, statusCode int) *AppError {
+func Wrap(err error, code, message string, status int) *AppError {
 	return &AppError{
-		Code:       code,
-		Message:    message,
-		StatusCode: statusCode,
-		Err:        err,
+		Code:    code,
+		Message: message,
+		Status:  status,
+		Err:     err,
 	}
 }
 
 var (
-	ErrNotFound     = New("RESOURCE_NOT_FOUND", "resource not found", http.StatusNotFound)
-	ErrBadRequest   = New("BAD_REQUEST", "bad request", http.StatusBadRequest)
-	ErrUnauthorized = New("UNAUTHORIZED", "unauthorized", http.StatusUnauthorized)
-	ErrForbidden    = New("FORBIDDEN", "forbidden", http.StatusForbidden)
-	ErrInternal     = New("INTERNAL_SERVER_ERROR", "internal server error", http.StatusInternalServerError)
-	ErrConflict     = New("CONFLICT", "conflict", http.StatusConflict)
+	ErrNotFound            = New("RESOURCE_NOT_FOUND", "resource not found", http.StatusNotFound)
+	ErrBadRequest          = New("BAD_REQUEST", "bad request", http.StatusBadRequest)
+	ErrUnauthorized        = New("UNAUTHORIZED", "unauthorized", http.StatusUnauthorized)
+	ErrForbidden           = New("FORBIDDEN", "forbidden", http.StatusForbidden)
+	ErrInternal            = New("INTERNAL_SERVER_ERROR", "internal server error", http.StatusInternalServerError)
+	ErrConflict            = New("CONFLICT", "conflict", http.StatusConflict)
+	ErrUnprocessableEntity = New("UNPROCESSABLE_ENTITY", "unprocessable entity", http.StatusUnprocessableEntity)
 )
 
 func IsAppError(err error) (*AppError, bool) {
