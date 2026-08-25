@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/newrelic/go-agent/v3/integrations/nrgin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -19,6 +20,7 @@ func newRouter(deps *dependencies) *gin.Engine {
 	r := gin.New()
 
 	r.Use(middleware.Recovery(deps.log))
+	r.Use(nrgin.Middleware(deps.newRelic))
 	r.Use(middleware.RequestID())
 	r.Use(middleware.CORS(deps.cfg.CORS.AllowedOrigins))
 	r.Use(middleware.RequestLogger(deps.log))

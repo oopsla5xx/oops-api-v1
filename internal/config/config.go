@@ -13,6 +13,7 @@ type Config struct {
 	Redis     RedisConfig
 	CORS      CORSConfig
 	RateLimit RateLimitConfig
+	NewRelic  NewRelicConfig
 }
 
 type AppConfig struct {
@@ -51,6 +52,15 @@ type CORSConfig struct {
 type RateLimitConfig struct {
 	RequestsPerSecond float64 `env:"RATE_LIMIT_RPS,required"`
 	Burst             int     `env:"RATE_LIMIT_BURST,required"`
+}
+
+type NewRelicConfig struct {
+	Enabled                    bool   `env:"NEW_RELIC_ENABLED,required"`
+	LicenseKey                 string `env:"NEW_RELIC_LICENSE_KEY,required"`
+	AppName                    string `env:"NEW_RELIC_APP_NAME,required"`
+	CodeLevelMetricsEnabled    bool   `env:"NEW_RELIC_CODE_LEVEL_METRICS_ENABLED,required"`
+	CodeLevelMetricsPathPrefix string `env:"NEW_RELIC_CODE_LEVEL_METRICS_PATH_PREFIX,required"`
+	Labels                     string `env:"NEW_RELIC_LABELS,required"`
 }
 
 // Load reads all configuration from environment variables.
