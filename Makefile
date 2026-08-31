@@ -21,6 +21,7 @@ COVER_MIN     ?= 0
 GOLANGCI_LINT_VERSION := v2.12.2
 MOCKERY_VERSION       := v2.53.6
 GOOSE_VERSION         := v3.27.3
+LEFTHOOK_VERSION      := v2.1.12
 
 GOBIN := $(shell go env GOBIN)
 
@@ -30,7 +31,7 @@ GOBIN := $(shell go env GOBIN)
         docker-up docker-down docker-logs \
         test-up test-down \
         migrate-up migrate-down migrate-status \
-        seed sqlc docs generate help
+        seed sqlc docs generate setup help
 
 ## build: compile binary with version ldflags
 build:
@@ -151,6 +152,11 @@ docs:
 generate:
 	@test -f $(GOBIN)/mockery || go install github.com/vektra/mockery/v2@$(MOCKERY_VERSION)
 	$(GOBIN)/mockery
+
+## setup: install Lefthook git hooks (run once after clone)
+setup:
+	@test -f $(GOBIN)/lefthook || go install github.com/evilmartians/lefthook/v2@$(LEFTHOOK_VERSION)
+	$(GOBIN)/lefthook install
 
 ## help: show available targets
 help:

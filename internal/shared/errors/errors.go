@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/oopsla5xx/oops-api-v1/internal/shared/constants"
 )
 
 type AppError struct {
@@ -42,13 +44,16 @@ func Wrap(err error, code, message string, status int) *AppError {
 }
 
 var (
-	ErrNotFound            = New("RESOURCE_NOT_FOUND", "resource not found", http.StatusNotFound)
-	ErrBadRequest          = New("BAD_REQUEST", "bad request", http.StatusBadRequest)
-	ErrUnauthorized        = New("UNAUTHORIZED", "unauthorized", http.StatusUnauthorized)
-	ErrForbidden           = New("FORBIDDEN", "forbidden", http.StatusForbidden)
-	ErrInternal            = New("INTERNAL_SERVER_ERROR", "internal server error", http.StatusInternalServerError)
-	ErrConflict            = New("CONFLICT", "conflict", http.StatusConflict)
-	ErrUnprocessableEntity = New("UNPROCESSABLE_ENTITY", "unprocessable entity", http.StatusUnprocessableEntity)
+	ErrNotFound            = New(constants.ErrNotFound, "resource not found", http.StatusNotFound)
+	ErrBadRequest          = New(constants.ErrBadRequest, "bad request", http.StatusBadRequest)
+	ErrUnauthorized        = New(constants.ErrUnauthorized, "unauthorized", http.StatusUnauthorized)
+	ErrForbidden           = New(constants.ErrForbidden, "forbidden", http.StatusForbidden)
+	ErrInternal            = New(constants.ErrInternalServer, "internal server error", http.StatusInternalServerError)
+	ErrConflict            = New(constants.ErrConflict, "conflict", http.StatusConflict)
+	ErrUnprocessableEntity = New(constants.ErrUnprocessableEntity, "unprocessable entity", http.StatusUnprocessableEntity)
+	ErrValidation          = New(constants.ErrValidation, "validation error", http.StatusBadRequest)
+	ErrGatewayTimeout      = New(constants.ErrGatewayTimeout, "gateway timeout", http.StatusGatewayTimeout)
+	ErrTooManyRequests     = New(constants.ErrTooManyRequests, "too many requests", http.StatusTooManyRequests)
 )
 
 func IsAppError(err error) (*AppError, bool) {

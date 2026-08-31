@@ -27,20 +27,23 @@ Backend API for **Oops** — an AI-native Software Development Workspace.
 # 1. Install dependencies
 go mod download
 
-# 2. Start dev infrastructure (Postgres :5432, Redis :6379)
+# 2. Install Lefthook git hooks (runs lint + test before every push)
+make setup
+
+# 3. Start dev infrastructure (Postgres :5432, Redis :6379)
 make docker-up
 
-# 3. Set up environment
+# 4. Set up environment
 cp .env.example .env.development
 # Edit .env.development — all variables are required, no defaults
 
-# 4. Apply migrations
+# 5. Apply migrations
 make migrate-up ENV=development
 
-# 5. Seed data (optional)
+# 6. Seed data (optional)
 make seed ENV=development
 
-# 6. Run with hot reload
+# 7. Run with hot reload
 make dev
 ```
 
@@ -114,12 +117,13 @@ Version is injected at build time via `ldflags` — never hardcoded.
 
 ## CI
 
-Three jobs run on every push and pull request:
+Four jobs run on every push and pull request:
 
 | Job | What it does |
 |-----|---|
 | `test` | Starts isolated containers, runs migrations, `make test-cover COVER_MIN=90` |
-| `lint` | `golangci-lint v1.64.8` |
+| `lint` | `golangci-lint v2.12.2` |
+| `generate` | Runs `make generate`, fails if mocks are stale |
 | `build` | `make build` |
 
 ---

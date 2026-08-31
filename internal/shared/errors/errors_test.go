@@ -187,6 +187,24 @@ func TestSentinelErrors(t *testing.T) {
 			wantCode:       "UNPROCESSABLE_ENTITY",
 			wantStatusCode: http.StatusUnprocessableEntity,
 		},
+		{
+			name:           "ErrValidation has 400 status",
+			err:            app_errors.ErrValidation,
+			wantCode:       "VALIDATION_ERROR",
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name:           "ErrGatewayTimeout has 504 status",
+			err:            app_errors.ErrGatewayTimeout,
+			wantCode:       "GATEWAY_TIMEOUT",
+			wantStatusCode: http.StatusGatewayTimeout,
+		},
+		{
+			name:           "ErrTooManyRequests has 429 status",
+			err:            app_errors.ErrTooManyRequests,
+			wantCode:       "TOO_MANY_REQUESTS",
+			wantStatusCode: http.StatusTooManyRequests,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
