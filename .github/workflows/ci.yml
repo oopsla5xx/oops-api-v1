@@ -30,6 +30,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Mirrors oops-infra-v1/docker/test/compose.yaml — keep image tags in sync by hand.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: oops
+          POSTGRES_PASSWORD: oops
+          POSTGRES_DB: oops_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U oops -d oops_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v7
 
@@ -37,9 +62,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true  # caches GOMODCACHE between runs
-
-      - name: Start test containers
-        run: docker compose -f docker/docker-compose.test.yml up -d --wait
 
       - name: Install goose
         # Pinned version for deterministic CI. Update in sync with go.mod tooling.
@@ -73,10 +95,6 @@ jobs:
           REDIS_PASSWORD: ""
           REDIS_DB: "0"
         run: make test-cover COVER_MIN=90 COVER_PKG_WARN=80
-
-      - name: Stop test containers
-        if: always()
-        run: docker compose -f docker/docker-compose.test.yml down
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v7

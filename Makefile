@@ -98,23 +98,23 @@ clean:
 
 ## docker-up: start dev infrastructure (Postgres :5432, Redis :6379)
 docker-up:
-	docker compose -f docker/docker-compose.dev.yml up -d
+	docker compose -f ../oops-infra-v1/docker/dev/compose.yaml up -d
 
 ## docker-down: stop dev infrastructure
 docker-down:
-	docker compose -f docker/docker-compose.dev.yml down
+	docker compose -f ../oops-infra-v1/docker/dev/compose.yaml down
 
 ## docker-logs: follow container logs
 docker-logs:
-	docker compose -f docker/docker-compose.dev.yml logs -f
+	docker compose -f ../oops-infra-v1/docker/dev/compose.yaml logs -f
 
 ## test-up: start isolated test containers (mirrors CI — Postgres :5433, Redis :6380)
 test-up:
-	docker compose -f docker/docker-compose.test.yml up -d --wait
+	docker compose -f ../oops-infra-v1/docker/test/compose.yaml up -d --wait
 
 ## test-down: stop test containers
 test-down:
-	docker compose -f docker/docker-compose.test.yml down
+	docker compose -f ../oops-infra-v1/docker/test/compose.yaml down
 
 ## migrate-up: run all pending migrations (ENV=development|test|production)
 migrate-up:

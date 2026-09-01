@@ -23,6 +23,15 @@ Backend API for **Oops** — an AI-native Software Development Workspace.
 
 **Prerequisites:** Go 1.26+, Docker, `make`
 
+This repo is a submodule of the [`oops-wiki-v1`](https://github.com/oopsla5xx/oops-wiki-v1) workspace. Shared dev/test containers live in the sibling `oops-infra-v1` submodule, so clone through the workspace rather than cloning this repo alone:
+
+```bash
+git clone git@github.com:oopsla5xx/oops-wiki-v1.git
+cd oops-wiki-v1
+git submodule update --init
+cd oops-api-v1
+```
+
 ```bash
 # 1. Install dependencies
 go mod download
@@ -30,7 +39,7 @@ go mod download
 # 2. Install Lefthook git hooks (runs lint + test before every push)
 make setup
 
-# 3. Start dev infrastructure (Postgres :5432, Redis :6379)
+# 3. Start dev infrastructure (Postgres :5432, Redis :6379 — defined in ../oops-infra-v1/docker/dev/compose.yaml)
 make docker-up
 
 # 4. Set up environment
@@ -121,7 +130,7 @@ Four jobs run on every push and pull request:
 
 | Job | What it does |
 |-----|---|
-| `test` | Starts isolated containers, runs migrations, `make test-cover COVER_MIN=90` |
+| `test` | Postgres/Redis via GitHub Actions `services:`, runs migrations, `make test-cover COVER_MIN=90` |
 | `lint` | `golangci-lint v2.12.2` |
 | `generate` | Runs `make generate`, fails if mocks are stale |
 | `build` | `make build` |
