@@ -33,30 +33,18 @@ cd oops-api-v1
 ```
 
 ```bash
-# 1. Install dependencies
 go mod download
-
-# 2. Install Lefthook git hooks (runs lint + test before every push)
-make setup
-
-# 3. Start dev infrastructure (Postgres :5432, Redis :6379 — defined in ../oops-infra-v1/docker/dev/compose.yaml)
-make docker-up
-
-# 4. Set up environment
-cp .env.example .env.development
-# Edit .env.development — all variables are required, no defaults
-
-# 5. Apply migrations
+make setup                        # install git hooks
+cp .env.example .env.development  # values already work for local dev, nothing to edit
+make dev-up                       # start Floci + provision RDS/ElastiCache/S3 (~1-2 min first time)
 make migrate-up ENV=development
-
-# 6. Seed data (optional)
-make seed ENV=development
-
-# 7. Run with hot reload
-make dev
+make dev                          # hot reload, http://localhost:8080
 ```
 
-Server runs at `http://localhost:8080`.
+`make dev-up` is the only infra command you need day to day. It starts
+[Floci](https://github.com/floci-io/floci) (a local AWS emulator, see `oops-infra-v1/README.md`) and
+provisions RDS/ElastiCache/S3 against it — mirrors production instead of running plain
+Postgres/Redis containers. `make docker-down` stops it when you're done for the day.
 
 ---
 
@@ -86,11 +74,15 @@ make generate         # mocks via mockery (run after changing a repository inter
 make docs             # Swagger docs
 
 # Infrastructure
-make docker-up        # start dev infra (Postgres :5432, Redis :6379)
-make docker-down
-make test-up          # start isolated test infra (Postgres :5433, Redis :6380)
+make dev-up            # start Floci + provision RDS/ElastiCache/S3 (see oops-infra-v1/README.md)
+make docker-down       # stop it
+make test-up           # start isolated test infra (Postgres :5433, Redis :6380 — unaffected by Floci)
 make test-down
 ```
+
+`dev-up` is `docker-up` (start Floci) + `infra-apply` (provision) chained — those two, plus
+`infra-destroy` (tear down RDS/ElastiCache/S3 without stopping Floci itself), are also available
+individually for finer control; see the Makefile.
 
 Run a single test:
 ```bash
@@ -109,7 +101,7 @@ make test-down
 
 ## Environment
 
-All variables in `.env.example` are required — `config.Load()` returns an error immediately if any variable is missing or malformed. Copy `.env.example` to `.env.development` and fill in the values. Never commit `.env.*` files.
+All variables in `.env.example` are required — `config.Load()` returns an error immediately if any variable is missing or malformed. Its values already work as-is for local dev (`DATABASE_DSN`/`REDIS_ADDR` point at the Floci-provisioned RDS/ElastiCache instance — fixed values, safe to hardcode since `oops-infra-v1/terraform/local/` only ever provisions exactly one of each, see ADR-0003). Copy it to `.env.development`; only edit it if you're changing something on purpose. Never commit `.env.*` files.
 
 ---
 

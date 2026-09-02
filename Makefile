@@ -25,10 +25,14 @@ LEFTHOOK_VERSION      := v2.1.12
 
 GOBIN := $(shell go env GOBIN)
 
+INFRA_TF_DIR := ../oops-infra-v1/terraform/local
+FLOCI_HEALTH_URL := http://localhost:4566/_localstack/health
+
 .DEFAULT_GOAL := help
 
 .PHONY: build run dev test test-cover cover-func lint fmt tidy clean \
         docker-up docker-down docker-logs \
+        infra-apply infra-destroy dev-up \
         test-up test-down \
         migrate-up migrate-down migrate-status \
         seed sqlc docs generate setup help
@@ -96,17 +100,32 @@ tidy:
 clean:
 	rm -rf ./bin $(COVER_OUT) $(COVER_HTML)
 
-## docker-up: start dev infrastructure (Postgres :5432, Redis :6379)
+## docker-up: start Floci (AWS emulator, backs RDS/ElastiCache/S3) — run infra-apply after
 docker-up:
-	docker compose -f ../oops-infra-v1/docker/dev/compose.yaml up -d
+	docker compose -f ../oops-infra-v1/docker/dev/compose.yaml up -d --wait
 
-## docker-down: stop dev infrastructure
+## docker-down: stop Floci (graceful — safe on its own; infra-destroy first only matters if you force-kill instead)
 docker-down:
 	docker compose -f ../oops-infra-v1/docker/dev/compose.yaml down
 
 ## docker-logs: follow container logs
 docker-logs:
 	docker compose -f ../oops-infra-v1/docker/dev/compose.yaml logs -f
+
+## infra-apply: provision RDS/ElastiCache/S3 on Floci (endpoints are fixed — see .env.example)
+infra-apply:
+	@curl -sf $(FLOCI_HEALTH_URL) >/dev/null || \
+	  (echo "Floci is not reachable — run 'make docker-up' first" >&2 && exit 1)
+	terraform -chdir=$(INFRA_TF_DIR) init -input=false
+	terraform -chdir=$(INFRA_TF_DIR) apply -auto-approve
+	terraform -chdir=$(INFRA_TF_DIR) output
+
+## infra-destroy: tear down RDS/ElastiCache/S3
+infra-destroy:
+	terraform -chdir=$(INFRA_TF_DIR) destroy -auto-approve
+
+## dev-up: one-command local setup — docker-up then infra-apply
+dev-up: docker-up infra-apply
 
 ## test-up: start isolated test containers (mirrors CI — Postgres :5433, Redis :6380)
 test-up:
