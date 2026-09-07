@@ -121,6 +121,7 @@ infra-apply:
 	terraform -chdir=$(INFRA_TF_DIR) init -input=false
 	terraform -chdir=$(INFRA_TF_DIR) apply -auto-approve
 	terraform -chdir=$(INFRA_TF_DIR) output
+	terraform -chdir=$(INFRA_TF_DIR) output database_dsn
 
 ## infra-destroy: tear down RDS/ElastiCache/S3
 infra-destroy:
