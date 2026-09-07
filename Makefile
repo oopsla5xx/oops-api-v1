@@ -114,6 +114,8 @@ docker-logs:
 
 ## infra-apply: provision RDS/ElastiCache/S3 on Floci (endpoints are fixed — see .env.example)
 infra-apply:
+	@test -d $(INFRA_TF_DIR) || \
+	  (echo "$(INFRA_TF_DIR) not found — clone via oops-wiki-v1 and run 'git submodule update --init'" >&2 && exit 1)
 	@curl -sf $(FLOCI_HEALTH_URL) >/dev/null || \
 	  (echo "Floci is not reachable — run 'make docker-up' first" >&2 && exit 1)
 	terraform -chdir=$(INFRA_TF_DIR) init -input=false
@@ -122,6 +124,9 @@ infra-apply:
 
 ## infra-destroy: tear down RDS/ElastiCache/S3
 infra-destroy:
+	@curl -sf $(FLOCI_HEALTH_URL) >/dev/null || \
+	  (echo "Floci is not reachable — run 'make docker-up' first" >&2 && exit 1)
+	terraform -chdir=$(INFRA_TF_DIR) init -input=false
 	terraform -chdir=$(INFRA_TF_DIR) destroy -auto-approve
 
 ## dev-up: one-command local setup — docker-up then infra-apply
