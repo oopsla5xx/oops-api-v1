@@ -1,24 +1,6 @@
-# Architecture
+# Wiring, shared packages, and the SQL pipeline
 
-## Pattern
-
-**Clean Architecture + DDD + Modular Monolith.**
-
-```
-Interface Layer   (HTTP handler, Router, Middleware)
-      ↓
-Application Layer (Use Case: Command / Query)
-      ↓
-Domain Layer      (Entity, Value Object, Repository Interface, Domain Service)
-
-Infrastructure Layer  ← implements Domain interfaces (Dependency Inversion)
-```
-
-Module structure, dependency rules, layer responsibilities, wiring, cross-module contracts, and the new module checklist are all defined as hard constraints in:
-
-> **`internal/modules/AGENTS.md`** — read this before touching any module.
-
----
+Module structure and dependency-direction rules live in `internal/modules/AGENTS.md` — this doc does not repeat them. This covers the application-level composition root and cross-module shared packages instead.
 
 ## Application-level wiring
 
@@ -30,8 +12,6 @@ Module structure, dependency rules, layer responsibilities, wiring, cross-module
 
 Config is loaded once in `main.go` via `config.Load()` using `caarlos0/env/v11`. Every env var is `required` — no silent defaults. See `internal/config/config.go`.
 
----
-
 ## Key shared packages
 
 | Package | Purpose |
@@ -40,22 +20,15 @@ Config is loaded once in `main.go` via `config.Load()` using `caarlos0/env/v11`.
 | `internal/shared/response` | `response.OK/Created/Error/NoContent` — all handlers must use these |
 | `internal/shared/constants` | API paths, error codes, timeouts, Redis keys, env names |
 | `internal/shared/middleware` | CORS, recovery, request ID, request logger, timeout |
-| `internal/tests` | `tests.NewTestDB(t)` (auto-skips if `DATABASE_DSN` unset), `tests.Truncate(t, pool, "table")` |
+| `internal/shared/version` | version/commit/build-time injected via `ldflags` in `make build`, exposed at `GET /api/v1/health` |
+| `internal/tests` | `tests.NewTestDB(t)`, `tests.Truncate(t, pool, "table")` — see `internal/tests/AGENTS.md` for the full testing guide |
 | `internal/tests/factory` | gofakeit-backed test factories with functional override pattern |
-
----
 
 ## SQL data pipeline
 
 ```
 database/queries/<name>.sql
     → make sqlc
-    → internal/infrastructure/database/sqlc/  (generated — do not edit)
-    → used by infrastructure/postgres/<name>_repository.go
+    → sqlc-generated code (see the Makefile `sqlc` target for the current output path — do not edit generated code by hand)
+    → used by internal/infrastructure/database/postgres.go and related infrastructure code
 ```
-
----
-
-## Version injection
-
-Version, commit, and build time are injected at build time via `ldflags` in `make build`. Exposed at `GET /api/v1/health` and sourced from `internal/shared/version/`.

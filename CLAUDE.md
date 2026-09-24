@@ -1,16 +1,17 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Where to read
 
 | Need to know | Read this |
 |---|---|
 | Commands (build, test, migrate, lint…) | `README.md` |
-| Architecture, module layout, wiring, data flow | `.ai/context/architecture.md` |
-| Coding conventions, error handling, env vars, SQL rules | `.ai/context/conventions.md` |
-| Testing patterns, mocks, factory, coverage | `.ai/context/testing-conventions.md` |
-| Current task status, what's in progress | `.ai/status.md` |
+| Module structure, dependency-direction rules, layer responsibilities | `internal/modules/AGENTS.md` — hard constraints, not suggestions |
+| Testing conventions, available test helpers | `internal/tests/AGENTS.md` |
+| App-level wiring, shared packages, SQL pipeline | `docs/architecture/wiring.md` |
+| Security checklist for this stack | `docs/architecture/security.md` |
+| Business/domain terms, cross-repo architecture, which source wins on conflict | `../CLAUDE.md` (workspace root) |
 
 **When unsure about anything — read the relevant file above first. Do not guess.**
 
@@ -19,9 +20,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Agent rules
 
 ### Before writing code
-- Read `.ai/context/architecture.md` before touching any module structure or wiring
-- Read `.ai/context/conventions.md` before writing handlers, error handling, or env vars
-- Read `.ai/context/testing-conventions.md` before writing any test
+- Read `internal/modules/AGENTS.md` before touching any module structure, layer, or cross-module wiring
+- Read `internal/tests/AGENTS.md` before writing any test
+- Read `docs/architecture/security.md` before writing authentication, authorization, input handling, secrets, or other security-sensitive code
 
 ### After making changes
 | Changed | Run |
@@ -37,10 +38,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Never hardcode values — use `internal/shared/constants`
 - Never write raw JSON error responses in handlers — use `response.Error(c, err)`
 - Never add default values to env var config — every var must be `required`
-- Never add a new dependency without recording it in `.ai/decisions/`
+- Never add a new dependency without recording the decision in the `design.md` of the OpenSpec change introducing it (there is no standalone ADR folder in this workspace — see `../docs/agent-context/authority.md`)
 
 ### When adding an env var
-Follow the 4-step checklist in `.ai/context/conventions.md` — all 4 places must be updated together.
+1. Add it to `.env.example` with a placeholder or example value
+2. Add it to `.env.development` and `.env.test`
+3. Add it to the CI workflow env block in `.github/workflows/ci.yml`
+4. Add a `required` struct tag in `internal/config/config.go` — never add a default value
 
 ### Definition of done
 A task is not done until:
