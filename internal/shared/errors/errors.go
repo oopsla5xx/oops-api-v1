@@ -12,7 +12,15 @@ type AppError struct {
 	Status  int
 	Code    string
 	Message string
+	Field   string
 	Err     error
+}
+
+// WithField attaches the request field this error applies to (e.g. "email") and returns
+// the same error for chaining.
+func (e *AppError) WithField(field string) *AppError {
+	e.Field = field
+	return e
 }
 
 func (e *AppError) Error() string {

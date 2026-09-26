@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/oopsla5xx/oops-api-v1/docs"
 	health_module "github.com/oopsla5xx/oops-api-v1/internal/modules/health"
+	identity_module "github.com/oopsla5xx/oops-api-v1/internal/modules/identity"
 	"github.com/oopsla5xx/oops-api-v1/internal/shared/constants"
 	"github.com/oopsla5xx/oops-api-v1/internal/shared/middleware"
 )
@@ -32,6 +33,7 @@ func newRouter(deps *dependencies) *gin.Engine {
 	v1 := r.Group(constants.APIVersionV1)
 	{
 		health_module.New().Register(v1)
+		identity_module.New(deps.db).Register(v1)
 	}
 
 	return r

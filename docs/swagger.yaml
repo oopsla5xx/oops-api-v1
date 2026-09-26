@@ -1,12 +1,81 @@
 basePath: /api/v1
 definitions:
-  handler.healthResponse:
+  github_com_oopsla5xx_oops-api-v1_internal_shared_response.ErrorInfo:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  github_com_oopsla5xx_oops-api-v1_internal_shared_response.Meta:
+    properties:
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  github_com_oopsla5xx_oops-api-v1_internal_shared_response.Response:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/github_com_oopsla5xx_oops-api-v1_internal_shared_response.ErrorInfo'
+      meta:
+        $ref: '#/definitions/github_com_oopsla5xx_oops-api-v1_internal_shared_response.Meta'
+      success:
+        type: boolean
+    type: object
+  internal_modules_health_interface.healthResponse:
     properties:
       service:
         type: string
       status:
         type: string
       version:
+        type: string
+    type: object
+  internal_modules_identity_interface.createUserRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        maxLength: 72
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - username
+    type: object
+  internal_modules_identity_interface.userResponse:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      updated_at:
+        type: string
+      username:
         type: string
     type: object
 host: localhost:8080
@@ -16,6 +85,35 @@ info:
   title: Oops API
   version: "1.0"
 paths:
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: user data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_identity_interface.createUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_modules_identity_interface.userResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_oopsla5xx_oops-api-v1_internal_shared_response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_oopsla5xx_oops-api-v1_internal_shared_response.Response'
+      summary: Register a user account
+      tags:
+      - auth
   /health:
     get:
       description: Returns service liveness status. Does NOT check DB/Redis — use
@@ -26,7 +124,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.healthResponse'
+            $ref: '#/definitions/internal_modules_health_interface.healthResponse'
       summary: Health check
       tags:
       - health

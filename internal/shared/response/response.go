@@ -19,6 +19,7 @@ type Response struct {
 type ErrorInfo struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+	Field   string `json:"field,omitempty"`
 }
 
 type Meta struct {
@@ -49,6 +50,7 @@ func Error(c *gin.Context, err error) {
 			Error: &ErrorInfo{
 				Code:    appErr.Code,
 				Message: appErr.Message,
+				Field:   appErr.Field,
 			},
 		})
 		return

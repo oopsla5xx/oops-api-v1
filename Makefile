@@ -34,8 +34,8 @@ FLOCI_HEALTH_URL := http://localhost:4566/_localstack/health
         docker-up docker-down docker-logs \
         infra-apply infra-destroy dev-up \
         test-up test-down \
-        migrate-up migrate-down migrate-status \
-        seed sqlc docs generate setup help
+        migrate-create migrate-up migrate-down migrate-reset migrate-status \
+        seed query-create sqlc docs generate setup help
 
 ## build: compile binary with version ldflags
 build:
@@ -141,6 +141,13 @@ test-up:
 test-down:
 	docker compose -f ../oops-infra-v1/docker/test/compose.yaml down
 
+## migrate-create: create a new migration
+## Usage: make migrate-create NAME=create_users_table
+migrate-create:
+	@test -n "$(NAME)" || (echo "Usage: make migrate-create NAME=create_users_table" >&2 && exit 1)
+	@test -f $(GOBIN)/goose || go install github.com/pressly/goose/v3/cmd/goose@$(GOOSE_VERSION)
+	$(GOBIN)/goose -dir database/migrations create $(NAME) sql
+
 ## migrate-up: run all pending migrations (ENV=development|test|production)
 migrate-up:
 	@test -f $(GOBIN)/goose || go install github.com/pressly/goose/v3/cmd/goose@$(GOOSE_VERSION)
@@ -153,6 +160,14 @@ migrate-down:
 	@set -a && . ./.env.$(ENV) && set +a && \
 	  $(GOBIN)/goose -dir database/migrations postgres "$$DATABASE_DSN" down
 
+## migrate-reset: rollback all migrations and re-apply
+## Usage: make migrate-reset ENV=development
+migrate-reset:
+	@test -f $(GOBIN)/goose || go install github.com/pressly/goose/v3/cmd/goose@$(GOOSE_VERSION)
+	@set -a && . ./.env.$(ENV) && set +a && \
+	  $(GOBIN)/goose -dir database/migrations postgres "$$DATABASE_DSN" reset && \
+	  $(GOBIN)/goose -dir database/migrations postgres "$$DATABASE_DSN" up
+
 ## migrate-status: show migration status
 migrate-status:
 	@test -f $(GOBIN)/goose || go install github.com/pressly/goose/v3/cmd/goose@$(GOOSE_VERSION)
@@ -163,6 +178,14 @@ migrate-status:
 seed:
 	@bash scripts/seed.sh $(ENV)
 
+## query-create: scaffold a new sqlc query file
+## Usage: make query-create NAME=users
+query-create:
+	@test -n "$(NAME)" || (echo "Usage: make query-create NAME=users" >&2 && exit 1)
+	@test ! -f database/queries/$(NAME).sql || (echo "database/queries/$(NAME).sql already exists" >&2 && exit 1)
+	@printf -- '-- name: TODO :one\n-- TODO: SELECT ... FROM %s WHERE ...;\n' "$(NAME)" > database/queries/$(NAME).sql
+	@echo "Created database/queries/$(NAME).sql"
+
 ## sqlc: generate type-safe Go code from SQL queries
 sqlc:
 	@test -f $(GOBIN)/sqlc || go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
@@ -171,7 +194,7 @@ sqlc:
 ## docs: generate Swagger docs via swag
 docs:
 	@test -f $(GOBIN)/swag || go install github.com/swaggo/swag/cmd/swag@latest
-	$(GOBIN)/swag init -g cmd/api/main.go -o docs
+	$(GOBIN)/swag init -g cmd/api/main.go -o docs --parseInternal --parseDependency --exclude ./notebooks
 
 ## generate: generate mocks via mockery
 generate:
