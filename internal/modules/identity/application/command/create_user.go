@@ -11,11 +11,9 @@ import (
 )
 
 type CreateUserInput struct {
-	FirstName string
-	LastName  string
-	Username  string
-	Email     string
-	Password  string
+	Username string
+	Email    string
+	Password string
 }
 
 type CreateUserCommand struct {
@@ -40,8 +38,6 @@ func (c *CreateUserCommand) Execute(ctx context.Context, input CreateUserInput) 
 
 	user := domain.User{
 		ID:           id.New(),
-		FirstName:    input.FirstName,
-		LastName:     input.LastName,
 		Username:     strings.ToLower(input.Username),
 		Email:        strings.ToLower(input.Email),
 		PasswordHash: hashedPassword,

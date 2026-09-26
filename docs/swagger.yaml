@@ -43,10 +43,6 @@ definitions:
     properties:
       email:
         type: string
-      first_name:
-        type: string
-      last_name:
-        type: string
       password:
         maxLength: 72
         type: string
@@ -54,8 +50,6 @@ definitions:
         type: string
     required:
     - email
-    - first_name
-    - last_name
     - password
     - username
     type: object

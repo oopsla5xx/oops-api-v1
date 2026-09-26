@@ -27,11 +27,9 @@ func TestMain(m *testing.M) {
 func requestBody(t *testing.T, u factory.UserInput) *bytes.Reader {
 	t.Helper()
 	body, err := json.Marshal(map[string]string{
-		"first_name": u.FirstName,
-		"last_name":  u.LastName,
-		"username":   u.Username,
-		"email":      u.Email,
-		"password":   u.Password,
+		"username": u.Username,
+		"email":    u.Email,
+		"password": u.Password,
 	})
 	require.NoError(t, err)
 	return bytes.NewReader(body)

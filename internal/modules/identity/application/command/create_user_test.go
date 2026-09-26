@@ -17,11 +17,9 @@ import (
 func TestCreateUserCommand_Execute(t *testing.T) {
 	in := factory.NewUser()
 	input := command.CreateUserInput{
-		FirstName: in.FirstName,
-		LastName:  in.LastName,
-		Username:  in.Username,
-		Email:     in.Email,
-		Password:  in.Password,
+		Username: in.Username,
+		Email:    in.Email,
+		Password: in.Password,
 	}
 
 	tests := []struct {
