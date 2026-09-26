@@ -47,11 +47,9 @@ func (h *Handler) CreateUser(c *gin.Context) {
 	}
 
 	user, err := h.createUser.Execute(c.Request.Context(), command.CreateUserInput{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Username:  req.Username,
-		Email:     req.Email,
-		Password:  req.Password,
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
 	})
 	if err != nil {
 		response.Error(c, mapError(err))
