@@ -6,24 +6,22 @@ Backend API for **Oops** — an AI-native Software Development Workspace.
 
 ## Tech Stack
 
-| | |
-|---|---|
-| Language | Go 1.26+ |
-| Framework | Gin v1.12 |
-| Database | PostgreSQL via pgx v5 (pgxpool) + sqlc |
-| Cache | Redis via go-redis v9 |
-| Migration | goose |
-| Logging | zap |
-| Validation | go-playground/validator v10 |
-| API Docs | swaggo/swag + gin-swagger |
+|            |                                        |
+| ---------- | -------------------------------------- |
+| Language   | Go 1.26+                               |
+| Framework  | Gin v1.12                              |
+| Database   | PostgreSQL via pgx v5 (pgxpool) + sqlc |
+| Cache      | Redis via go-redis v9                  |
+| Migration  | goose                                  |
+| Logging    | zap                                    |
+| Validation | go-playground/validator v10            |
+| API Docs   | swaggo/swag + gin-swagger              |
 
 ---
 
-## Development Setup
+## Quick Start
 
-**Prerequisites:** Go 1.26+, Docker, `make`
-
-This repo is a submodule of the [`oops-wiki-v1`](https://github.com/oopsla5xx/oops-wiki-v1) workspace. Shared dev/test containers live in the sibling `oops-infra-v1` submodule, so clone through the workspace rather than cloning this repo alone:
+This repo is a submodule of [`oops-wiki-v1`](https://github.com/oopsla5xx/oops-wiki-v1). Clone the workspace rather than this repo alone.
 
 ```bash
 git clone git@github.com:oopsla5xx/oops-wiki-v1.git
@@ -32,105 +30,128 @@ git submodule update --init
 cd oops-api-v1
 ```
 
+Install dependencies and configure local environment:
+
 ```bash
 go mod download
-make setup                        # install git hooks
-cp .env.example .env.development  # values already work for local dev, nothing to edit
-make dev-up                       # start Floci + provision RDS/ElastiCache/S3 (~1-2 min first time)
-make migrate-up ENV=development
-make dev                          # hot reload, http://localhost:8080
+make setup
+cp .env.example .env.development
 ```
 
-`make dev-up` is the only infra command you need day to day. It starts
-[Floci](https://github.com/floci-io/floci) (a local AWS emulator, see `oops-infra-v1/README.md`) and
-provisions RDS/ElastiCache/S3 against it — mirrors production instead of running plain
-Postgres/Redis containers. `make docker-down` stops it when you're done for the day.
+Start local infrastructure:
+
+```bash
+make dev-up
+```
+
+Apply database migrations:
+
+```bash
+make migrate-up ENV=development
+```
+
+Start the API:
+
+```bash
+make dev
+```
+
+API: `http://localhost:8080`
+
+Health check: `GET /api/v1/health`
+
+Swagger: `GET /swagger/index.html`
 
 ---
 
 ## Commands
 
+### Development
+
 ```bash
-# Development
-make dev              # hot reload via Air
-make run              # build + run once
-make build            # compile binary into ./bin/
+make dev                 # hot reload
+make run                 # build and run
+make build               # build ./bin/oops-api-v1
+```
 
-# Quality
-make test             # all tests with race detector
-make test-cover       # tests + coverage report
-make lint             # golangci-lint
-make fmt              # goimports + gofmt
+### Database
 
-# Database
+```bash
+make migrate-create NAME=create_users_table
 make migrate-up ENV=development
 make migrate-down ENV=development
 make migrate-status ENV=development
+make migrate-reset ENV=development
 make seed ENV=development
-
-# Code generation
-make sqlc             # SQL queries → Go (run after editing database/queries/)
-make generate         # mocks via mockery (run after changing a repository interface)
-make docs             # Swagger docs
-
-# Infrastructure
-make dev-up            # start Floci + provision RDS/ElastiCache/S3 (see oops-infra-v1/README.md)
-make docker-down       # stop it
-make test-up           # start isolated test infra (Postgres :5433, Redis :6380 — unaffected by Floci)
-make test-down
 ```
 
-`dev-up` is `docker-up` (start Floci) + `infra-apply` (provision) chained — those two, plus
-`infra-destroy` (tear down RDS/ElastiCache/S3 without stopping Floci itself), are also available
-individually for finer control; see the Makefile.
+Create a new migration:
 
-Run a single test:
+```bash
+make migrate-create NAME=create_users_table
+```
+
+`migrate-reset` rolls back all migrations and applies them again. Use it only for development/test.
+
+### Testing & Quality
+
+```bash
+make test
+make test-cover
+make lint
+make fmt
+make tidy
+```
+
+Run a specific test:
+
 ```bash
 go test -run TestFunctionName ./internal/modules/...
 ```
 
-Integration tests (require real DB):
+Integration tests:
+
 ```bash
 make test-up
-DATABASE_DSN=postgres://oops:oops@localhost:5433/oops_test?sslmode=disable \
-REDIS_ADDR=localhost:6380 REDIS_DB=0 make test
+make test
+make test-down
+```
+
+### Code Generation
+
+```bash
+make query-create NAME=users   # scaffold database/queries/users.sql
+make sqlc                      # database/queries → Go
+make generate                  # generate mocks
+make docs                      # generate Swagger docs
+```
+
+### Infrastructure
+
+```bash
+make dev-up
+make docker-down
+
+make test-up
 make test-down
 ```
 
 ---
 
-## Environment
+## Database Migration Rules
 
-All variables in `.env.example` are required — `config.Load()` returns an error immediately if any variable is missing or malformed. Its values already work as-is for local dev (`DATABASE_DSN`/`REDIS_ADDR` point at the Floci-provisioned RDS/ElastiCache instance — fixed values, safe to hardcode since `oops-infra-v1/terraform/local/` only ever provisions exactly one of each, see ADR-0003). Copy it to `.env.development`; only edit it if you're changing something on purpose. Never commit `.env.*` files.
-
----
-
-## API
-
-```
-GET /api/v1/health     → {"status":"ok","service":"oops-api-v1","version":"<version>"}
-GET /swagger/index.html
-```
-
-Version is injected at build time via `ldflags` — never hardcoded.
+* Create migrations with `make migrate-create`.
+* Never modify a migration already applied to production.
+* Create a new migration for schema changes.
+* Use `migrate-reset` only for development/test.
 
 ---
 
-## CI
+## Project Documentation
 
-Four jobs run on every push and pull request:
+* Architecture → `.ai/context/architecture.md`
+* Coding conventions → `.ai/context/conventions.md`
+* Testing conventions → `.ai/context/testing-conventions.md`
+* Module rules → `internal/modules/AGENTS.md`
 
-| Job | What it does |
-|-----|---|
-| `test` | Postgres/Redis via GitHub Actions `services:`, runs migrations, `make test-cover COVER_MIN=90` |
-| `lint` | `golangci-lint v2.12.2` |
-| `generate` | Runs `make generate`, fails if mocks are stale |
-| `build` | `make build` |
-
----
-
-## Architecture & Conventions
-
-- Architecture and module rules → `.ai/context/architecture.md` + `internal/modules/AGENTS.md`
-- Coding conventions → `.ai/context/conventions.md`
-- Testing conventions → `.ai/context/testing-conventions.md`
+Read the relevant documentation before making changes.
